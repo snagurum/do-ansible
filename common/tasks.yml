@@ -1,0 +1,37 @@
+---
+- hosts: all
+  vars:
+     - state: present
+  tasks:
+
+     - name: update & upgrade
+       ansible.builtin.apt:
+          update_cache: yes
+          upgrade: true
+
+     - name: Install a list of packages
+       ansible.builtin.apt:
+          pkg:
+             - tree
+             - zip
+             - net-tools
+          state: "{{ state }}"
+
+     - name: Install python pip
+       ansible.builtin.shell: |
+          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+          python3 get-pip.py
+          python3 -m pip install ansible 
+          rm get-pip.py
+
+     - name: create users
+       ansible.builtin.user:
+          name: "{{ item.name }}"
+          state: "{{ item.state }}"
+          comment: "{{ item.fullname }}"
+          password: "{{ item.password }}"
+          create_home: "yes"
+       loop:
+          - { name: "murugan", state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Murugan Sundaram" }
+          - { name: "abishek", state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Abhishek Kirubanand" }
+          - { name: "lokesh" , state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Lokesh Sekar" }
