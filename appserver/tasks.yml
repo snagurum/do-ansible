@@ -1,0 +1,52 @@
+---
+
+- hosts: app-servers
+  vars:
+     - state: present
+     - debug: false
+
+  tasks:
+     - name: "create app directory"
+       ansible.builtin.file:
+          name: "/app"
+          state: directory
+
+     - name: "copy hello application"
+       ansible.builtin.copy:
+          src: "{{item.src }}"
+          dest: "{{item.dest }}"
+          mode: "{{ item.mode}}"
+       loop:
+          - { src: "hello.py", dest: "/app/hello.py", mode: "0600"          }
+          - { src: "hello.sh", dest: "/app/hello.sh", mode: "0700"          }
+          - { src: "hello.service", dest: "/etc/systemd/system/", mode: "0644"          }
+
+
+     - name: "install pip module virtualenv"
+       ansible.builtin.pip:
+          name: virtualenv
+
+     - name: "install requirements"
+       ansible.builtin.pip:
+          name: Flask
+          virtualenv: /app/helloEnv
+
+     - name: "start hello service"
+       ansible.builtin.service:
+          name: hello
+          state: started
+          enabled: yes         
+       register: output1
+
+     - name: "systemctl daemon reload"
+       ansible.builtin.service:
+          name: hello
+          state: started
+          enabled: yes
+       register: output1
+
+     - name: "debug"
+       ansible.builtin.debug:
+          msg: "output1 = {{output1}}"
+       when: debug
+

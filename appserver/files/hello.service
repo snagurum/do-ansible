@@ -1,0 +1,12 @@
+[Unit]
+Description=helloworld service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/app
+Environment="PATH=/app/helloEnv/bin"
+ExecStart="/app/hello.sh"
+
+[Install]
+WantedBy=multi-user.target
