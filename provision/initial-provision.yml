@@ -1,0 +1,90 @@
+---
+  - name: ........Digital Ocean droplets creation steps........
+    hosts: localhost
+    gather_facts: false
+    vars:
+        - global_state: absent
+        - DO_API_TOKEN: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+        - project_name: "Ansible-Project"
+        - ssh_key_id: "42745104"
+        - droplets_info:
+             - name: app1
+               size: s-1vcpu-512mb-10gb
+               region: sgp1
+               image: ubuntu-20-04-x64
+               state: "{{ global_state }}"
+             - name: web1
+               size: s-1vcpu-512mb-10gb
+               region: sgp1
+               image: ubuntu-20-04-x64
+               state: "{{ global_state }}"
+             - name: db1
+               size: s-1vcpu-512mb-10gb
+               region: sgp1
+               image: ubuntu-20-04-x64
+               state: "{{ global_state }}"
+#               size: s-1vcpu-1gb
+        - debug: debug
+
+    tasks:
+       - name: "Create ssh key"
+         community.digitalocean.digital_ocean_sshkey:
+            oauth_token: "{{ DO_API_TOKEN }}"
+            name: "snagurumKey"
+            ssh_pub_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMtZq0cJY6ZtUvo0xfFmyrykDjrs28EDLk1cS9aa0ge4"
+            state: present
+         register: result
+
+       - name: Print key creation result
+         ansible.builtin.debug:
+            msg: "keyCreationResult = {{ result }}"
+         when: debug
+
+       - name: Create Droplets
+         community.digitalocean.digital_ocean_droplet:
+            state:        "{{ item.state  }}"
+            name:         "{{ item.name   }}"
+            size:         "{{ item.size   }}"
+            region:       "{{ item.region }}"
+            image:        "{{ item.image  }}"
+            ssh_keys:     [ "{{ssh_key_id}}" ]
+            project_name: "{{ project_name }}"
+            oauth_token:  "{{ DO_API_TOKEN }}"
+            wait_timeout: 500
+            unique_name:  true
+         register: tempVar_droplets
+         loop: "{{ droplets_info }}"
+
+       - name: droplet deletion result
+         ansible.builtin.debug:
+            msg: "droplet deletion result = {{ tempVar_droplets }} "
+         when: global_state == "absent"
+
+       - name: droplet creation result
+         ansible.builtin.debug:
+            msg:
+               - "droplet( id = {{ item.data.droplet.id }}, name = {{item.data.droplet.name}} ){"
+               - "   size( slug = {{item.data.droplet.size.slug}}, price = ({{item.data.droplet.size.price_monthly}}$/monthly, {{item.data.droplet.size.price_hourly}}$/hourly)   )"
+               - "   network( "
+               - "      {{item.data.droplet.networks.v4[0].type}}  = {{item.data.droplet.networks.v4[0].ip_address}}"
+               - "      {{item.data.droplet.networks.v4[1].type}} = {{item.data.droplet.networks.v4[1].ip_address}}"
+               - "   )"
+               - "}"
+         loop: "{{tempVar_droplets.results}}"
+         loop_control:
+            label: " *droplet* "
+         when: global_state ==  "present"
+
+
+#       - name: Gather information about all images
+#         community.digitalocean.digital_ocean_image_info:
+#            image_type: all
+#            oauth_token: "{{ DO_API_TOKEN }}"
+#         register: image_list
+#         when: debug
+
+#       - name: Print all images
+#         ansible.builtin.debug:
+#            msg: "image_list = {{ image_list }}"
+#         when: debug
+
