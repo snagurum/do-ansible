@@ -1,0 +1,64 @@
+---
+
+- hosts: web-servers
+#  become: yes
+  vars:
+     - modify_defaults: true
+     - state: present
+     - install_hw_app: true
+     - hw:
+          app_name: HW application
+          msg: "HW under maintenance"
+          url: "hw-app.com"
+          index_file: "hw.index.html"
+          web_folder: "/var/www/hw-app"
+  tasks:
+
+     - name: update & upgrade
+       ansible.builtin.apt:
+          update_cache: yes
+          upgrade: true
+
+     - name: Install  "nginx" 
+       ansible.builtin.apt:
+          name: nginx
+          state: "{{ state }}"
+          allow_downgrade: yes
+
+     - name: create HWapp config file
+       ansible.builtin.template:
+          src: hw.conf.j2
+          dest: /etc/nginx/sites-available/hw.conf
+       when: install_hw_app
+       notify: "restart nginx"
+
+     - name: enable HWapp config file
+       ansible.builtin.file:
+          src: /etc/nginx/sites-available/hw.conf
+          dest: /etc/nginx/sites-enabled/hw.conf
+          state: link
+       when: install_hw_app
+       notify: "reload nginx"
+
+     - name: create HWapp webapp directory
+       ansible.builtin.file:
+          dest: "{{hw.web_folder}}"
+          state: directory
+       when: install_hw_app
+
+     - name: create HWapp index file
+       ansible.builtin.template:
+          src: hw.index.html.j2
+          dest: "{{hw.web_folder}}/hw.index.html"
+       when: install_hw_app
+
+  handlers:
+     - name: "restart nginx"
+       ansible.builtin.service:
+          name: nginx
+          state: restarted
+
+     - name: "reload nginx"
+       ansible.builtin.service:
+          name: nginx
+          state: reloaded
