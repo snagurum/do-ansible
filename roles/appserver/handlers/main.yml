@@ -1,0 +1,13 @@
+---
+# handlers file for roles/appserver
+
+     - name: "daemon reload"
+       ansible.builtin.systemd:
+          daemon_reload: true
+
+     - name: "restart hw-app"
+       ansible.builtin.service:
+          name: hello
+          state: started
+          enabled: yes
+

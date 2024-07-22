@@ -1,0 +1,21 @@
+---
+# vars file for roles/appserver
+
+hw_app:
+   root_folder: 
+      name: "/app"
+      state: directory
+   src_files:
+      - { src: "hello.py",      dest: "/app/hello.py",        mode: "0600"          }
+      - { src: "dbHello.py",    dest: "/app/dbHello.py",      mode: "0600"          }
+      - { src: "hello.sh",      dest: "/app/hello.sh",        mode: "0700"          }
+   src_templates:
+      - { src: "hello.service", dest: "/etc/systemd/system/", mode: "0644"          }
+   virtualenv: "/app/helloEnv"
+   service:
+      name: "hello"
+      state: started
+      enabled: yes
+
+appserver:
+   debug: false

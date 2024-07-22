@@ -1,0 +1,12 @@
+---
+# defaults file for roles/webserver
+
+
+state: present
+install_hw_app: true
+hw:
+   app_name: HW application
+   msg: "HW under maintenance"
+   url: "hw-app.com"
+   index_file: "hw.index.html"
+   web_folder: "/var/www/hw-app"

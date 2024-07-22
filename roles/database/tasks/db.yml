@@ -1,0 +1,51 @@
+---
+
+     - name: "Create app database({{db.name}})"
+       ansible.builtin.postgresql_db:
+          state: present
+          name: "{{ db.name }}"
+       become: yes
+       become_user: postgres
+
+     - name: "Create db user({{ db.user }})"
+       ansible.builtin.postgresql_user:
+          state: present
+          name: "{{ db.user }}"
+          password: "{{ db.password }}"
+       become: yes
+       become_user: postgres
+
+     - name: "Grant db user({{db.user}}) access to app db{{db.name}}"
+       ansible.builtin.postgresql_privs:
+          type: database
+          database: "{{ db.name }}"
+          roles: "{{ db.user }}"
+          grant_option: no
+          privs: all
+       become: yes
+       become_user: postgres
+
+     - name: "Create a new schema with name {{db.schema}} in {{db.name}} database"
+       community.postgresql.postgresql_schema:
+          db: "{{db.name}}"
+          name: "{{db.schema}}"
+          comment: 'My hello schema'
+          owner: "{{db.user}}"
+       become: yes
+       become_user: postgres
+
+     - name: Create a table in schema "{{db.schema}}"
+       ansible.builtin.postgresql_table:
+          db: "{{db.name}}"
+          name: "{{db.schema}}.{{db.table}}"
+          columns: "msg varchar(50) primary key"
+          owner: "{{db.user}}"
+       become: yes
+       become_user: postgres
+
+     - name: "insert hello message into  {{db.name}}. {{db.schema}}.{{db.table}}"
+       community.postgresql.postgresql_query:
+          db: "{{db.name}}"
+          query: "insert into {{db.schema}}.{{db.table}}(msg)values('hello') ON CONFLICT (msg) DO NOTHING"
+       become: yes
+       become_user: postgres

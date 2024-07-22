@@ -1,0 +1,19 @@
+server {
+       listen 80;
+       listen [::]:80;
+
+       server_name {{hw.url}};
+
+       root {{hw.web_folder}};
+       index {{hw.index_file}};
+
+       location / {
+            try_files $uri $uri/ =404;
+       }
+
+       location /api {
+            proxy_pass http://10.104.0.2:8080;
+       }
+
+
+}

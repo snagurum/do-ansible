@@ -1,0 +1,70 @@
+---
+# tasks file for roles/appserver
+
+#- hosts: app-servers
+#  vars:
+#     - state: present
+#     - debug: false
+
+#  tasks:
+     - name: "create app directory({{hw_app.root_folder.name}})"
+       ansible.builtin.file:
+          name:  "{{ hw_app.root_folder.name }}"
+          state: "{{ hw_app.root_folder.state }}"
+
+     - name: "copy hello application"
+       ansible.builtin.copy:
+          src: "{{item.src }}"
+          dest: "{{item.dest }}"
+          mode: "{{ item.mode}}"
+       loop: "{{ hw_app.src_files }}"
+       notify:
+          - "restart hw-app"
+
+     - name: "copy hello service"
+       ansible.builtin.template:
+          src: "{{item.src }}"
+          dest: "{{item.dest }}"
+          mode: "{{ item.mode}}"
+       loop: "{{ hw_app.src_templates }}"
+       notify:
+          - "daemon reload"
+          - "restart hw-app"
+
+     - name: "install pip module virtualenv"
+       ansible.builtin.pip:
+          name: virtualenv
+
+     - name: "install requirements(pip install Flask in venv)"
+       ansible.builtin.pip:
+#          name: Flask
+          name: "{{ item }}"
+          virtualenv: "{{ hw_app.virtualenv }}"
+       loop:
+          - Flask
+          - psycopg2-binary
+
+     - name: "create & start hello service"
+       ansible.builtin.service:
+          name:    "{{ hw_app.service.name }}"
+          state:   "{{ hw_app.service.state }}"
+          enabled: "{{ hw_app.service.enabled }}"
+       register: output1
+
+#     - name: "debug"
+#       ansible.builtin.debug:
+#          msg: "output1 = {{output1}}"
+#       when: "{{ appserver.debug }}"
+
+#     - name: "systemctl daemon reload"
+#       ansible.builtin.service:
+#          name: hello
+#          state: started
+#          enabled: yes
+#       register: output2
+
+#     - name: "debug"
+#       ansible.builtin.debug:
+#          msg: "output2 = {{output2}}"
+#       when: "{{ appserver.debug }}"
+

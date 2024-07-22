@@ -1,0 +1,25 @@
+---
+# vars file for roles/database
+
+state: "present"
+debug: false
+
+postgresql_version: "12"
+postgresql_conf_dir:    "/etc/postgresql/{{ postgresql_version }}/main"
+postgresql_config_file: "{{ postgresql_conf_dir }}/postgresql.conf"
+postgresql_hba_file:    "{{ postgresql_conf_dir }}/pg_hba.conf"
+
+db:
+   name: "hello"
+   user: "hello"
+   password: "hello"
+   schema: "hello"
+   table: "hello"
+
+databaseserver:
+   debug: false
+   tools:
+      - postgresql
+      - postgresql-contrib
+      - libpq-dev
+      - python3-psycopg2
