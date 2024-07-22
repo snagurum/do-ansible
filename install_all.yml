@@ -1,0 +1,28 @@
+---
+
+   - name: Initial Setup[common]
+     hosts: all
+     roles:
+       - common
+     tags: common
+
+   - name: Setup webserver
+     hosts: web-servers
+     gather_facts: false
+     roles:
+       - webserver
+     tags: webserver
+
+   - name: Setup  appserver
+     hosts: app-servers
+     gather_facts: false
+     roles:
+       - appserver
+     tags: appserver
+
+   - name: Setup  databaseserver
+     hosts: db-servers
+     gather_facts: false
+     roles:
+       - database
+     tags: databaseserver

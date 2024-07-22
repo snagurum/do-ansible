@@ -1,0 +1,12 @@
+[Unit]
+Description=helloworld service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory={{hw_app.root_folder.name }}
+Environment="PATH={{ hw_app.virtualenv }}/bin"
+ExecStart="{{hw_app.root_folder.name }}/hello.sh"
+
+[Install]
+WantedBy=multi-user.target

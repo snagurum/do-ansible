@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACrUlEQVQ4T6WTWUiUYRiFn98cm0YtdcSywkpzWmyxMgjSFrTFJTOz1STLEDOiBbQdNzBN8cJyiUBLUgkylyxCiFYVKoggKqQykUnNJXPUGZ1R++bPlovspu/+fb7znvccaUQ8/uNJw0NDIx1vGpigtsfGeTID33ro/tiE7fSp6Jq1OMyZjcJaRVfDB4ZNJhznaRAzmGcmukxDMuoNI9V7DuLq78uiqHC09c95cjoVr2MxPMvMYX3uBRlSc+gE+s4ugksvM9jbR9XOaHySTyEN9utHKrbuwy1oHUtj99P8uJ4H8Un4pJzkybk01qSdw2mRB7fDYwTgK2HVxRi6e6jacYDNNwt+AMpHAct+AuKSWHcpjYcCtDByFy6+3lRui8LY288moaC3pY265EwZNiZg45UsHsQl4h68EddAPypC92EyDBB49SI6bQsv8woJrSj6DZjpt5rFUbvR1r3gaWI6QddzqU3IQO0xB82WAKrDY7FUKVmZEEfv51Yaax4SUJg9Ctiyl77WdpRqO0x9evGTgZCyQl5fu0F/2xfcQwN5kZWPwsYatwA/dAJg7NezKmXUxHIzoK2dCQ52GP8AND+qo6Gsmpkb1tL9vhFzYBQqFQZxjSlennhGR/xlhXqxQkK6fK5vjc3UCrPsZ89CPV8jx63l2UvMpAWRO2Q1Y5oYXJovQqXj/tGzWCgs8YjYjiRJvLpShJWtLd5J8TgvX/JvgMkwyL3o4wwPGllx6oisoDYpQ6xqj9/F8zgKg8cMUnBJPpZKJZUicfr2Tvl8FuOtMPtlPcWJsDslMujvUT6Tin9BNtbOTtyNPExPk5ag4jwsBeBWyF4muc4gqCiHcVYK5DJ1imIof5VJR3fjJ9RzNULBeDreNmDSG37IFR50vH4n8qDCQeOGZCEh/W+dvwMMo2+JwexqGQAAAABJRU5ErkJggg==" rel="icon" type="image/x-icon" />
+
+<title>Welcome to {{hw.app_name}}!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+  crossorigin="anonymous">
+</script>
+
+<script>
+$.ajax({
+    type: "GET",
+    url: "api",
+}).done(async function(data){
+ await new Promise(r => setTimeout(() => r(), 2000));
+ console.log(data);
+ $('#1').replaceWith('<p>'+data+' </p>');
+});
+</script>
+
+</head>
+<body>
+<h1>Welcome to {{hw.app_name}}!</h1>
+<div >
+<p id='1'>{{hw.app_name}} is under maintenance</p>
+</div>
+<p><em>Thank you for visiting {{hw.app_name}}.</em></p>
+</body>
+</html>

@@ -1,0 +1,21 @@
+---
+# defaults file for roles/common
+
+state: present
+
+ubuntu_pkgs:
+   - {name: tree, state: present}
+   - {name: zip, state: present}
+   - {name: net-tools, state: present}
+
+pip_and_ansible_install_script: |
+   curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+   python3 get-pip.py
+   python3 -m pip install ansible
+   rm get-pip.py
+
+server_users:
+   - { name: "murugan", state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Murugan Sundaram" }
+   - { name: "abishek", state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Abhishek Kirubanand" }
+   - { name: "lokesh" , state: "{{state}}", password: "$6$YeahSomeSalt$c4VhGqqUm755csKnKFrctQmoJ3v.UnqqXHiZP8C4VVkvMviwxJpOXOD8tO2zyG0eX3mO6clLbp2yeB0QffYL0.", fullname: "Lokesh Sekar" }
+

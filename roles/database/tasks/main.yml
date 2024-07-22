@@ -1,0 +1,92 @@
+---
+# tasks file for roles/database
+
+#- hosts: "db-servers"
+#  vars:
+#     state: "present"
+#     debug: false
+#     postgresql_version: "12"
+#     postgresql_conf_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+#     db:
+#        name: "hello"
+#        user: "hello"
+#        password: "hello"
+
+#  tasks:
+     - name: Install packages
+       ansible.builtin.apt:
+          name: "{{ item }}"
+          state: "{{ state }}"
+       loop: "{{ databaseserver.tools }}"
+
+     - name: "Configure(postgresql.conf) Open DB for External connection"
+       ansible.builtin.lineinfile:
+          path: "{{ postgresql_config_file }}"
+          search_string: "#listen_addresses = 'localhost'         # what IP address(es) to listen on;"
+          line: "listen_addresses = '*'"
+          owner: postgres
+          group: postgres
+          mode: '0644'
+       register: output1
+       notify: "restart postgres"
+
+     - name: "show output1"
+       ansible.builtin.debug:
+          msg: "output1 = {{ output1 }}"
+       when: "{{ databaseserver.debug }}"
+
+     - name: "Configure(pg_hba.conf)Open DB for External connection"
+       ansible.builtin.lineinfile:
+          path: "{{postgresql_hba_file}}"
+          search_string: "host    all             all             127.0.0.1/32            md5"
+          line: "host    all             all             0.0.0.0/0               md5"
+          owner: postgres
+          group: postgres
+          mode: '0644'
+       register: output2
+       notify: "restart postgres"
+
+     - name: "show output2"
+       ansible.builtin.debug:
+          msg: "output2 = {{ output2 }}"
+       when: "{{ databaseserver.debug }}"
+
+     - name: Start and enable service
+       ansible.builtin.service:
+          name: postgresql
+          state: restarted
+          enabled: true
+       when: output1.changed or output2.changed
+
+     - name: "Create HW App database & users"
+       ansible.builtin.import_tasks:
+          file: roles/database/tasks/db.yml
+
+#     - name: "Create app database"
+#       ansible.builtin.postgresql_db:
+#          state: present
+#          name: "{{ db.name }}"
+#       become: yes
+#       become_user: postgres
+
+#     - name: "Create db user"
+#       ansible.builtin.postgresql_user:
+#          state: present
+#          name: "{{ db.user }}"
+#          password: "{{ db.password }}"
+#       become: yes
+#       become_user: postgres
+
+#     - name: "Grant db user access to app db"
+#       ansible.builtin.postgresql_privs:
+#          type: database
+#          database: "{{ db.name }}"
+#          roles: "{{ db.user }}"
+#          grant_option: no
+#          privs: all
+#       become: yes
+#       become_user: postgres
+
+#  handlers:
+#     - name: restart postgres
+#       service: name=postgresql state=restarted

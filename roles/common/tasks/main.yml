@@ -1,0 +1,31 @@
+---
+# tasks file for roles/common
+
+#- hosts: all
+#  vars:
+#     - state: present
+#  tasks:
+
+     - name: update & upgrade
+       ansible.builtin.apt:
+          update_cache: yes
+          upgrade: true
+
+     - name: Install a list of packages
+       ansible.builtin.apt:
+          pkg: "{{ item.name }}"
+          state: "{{ item.state }}"
+       loop: "{{ubuntu_pkgs}}"
+
+     - name: Install python pip & ansible[NOT Idompotent]
+       ansible.builtin.shell: "{{pip_and_ansible_install_script}}"
+
+     - name: create users
+       ansible.builtin.user:
+          name: "{{ item.name }}"
+          state: "{{ item.state }}"
+          comment: "{{ item.fullname }}"
+          password: "{{ item.password }}"
+          create_home: "yes"
+       loop: "{{server_users}}"
+
