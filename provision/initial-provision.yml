@@ -3,27 +3,58 @@
     hosts: localhost
     gather_facts: false
     vars:
-        - global_state: absent
+        - global_state: present
         - DO_API_TOKEN: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
-        - project_name: "Ansible-Project"
-        - ssh_key_id: "42745104"
-        - droplets_info:
-             - name: app1
-               size: s-1vcpu-512mb-10gb
-               region: sgp1
-               image: ubuntu-20-04-x64
-               state: "{{ global_state }}"
-             - name: web1
-               size: s-1vcpu-512mb-10gb
-               region: sgp1
-               image: ubuntu-20-04-x64
-               state: "{{ global_state }}"
-             - name: db1
-               size: s-1vcpu-512mb-10gb
-               region: sgp1
-               image: ubuntu-20-04-x64
-               state: "{{ global_state }}"
-#               size: s-1vcpu-1gb
+#        - project_name: "Ansible-Project"
+#        - ssh_key_id: "42745104"
+        - dev_droplets_info:
+             droplets:
+                - name: app1
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: ""
+                  vpc_uuid: "50c06055-841b-4bb4-b021-1676c442c19a" 
+                - name: web1
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: ""
+                  vpc_uuid: "50c06055-841b-4bb4-b021-1676c442c19a" 
+                - name: db1
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: ""
+                  vpc_uuid: "50c06055-841b-4bb4-b021-1676c442c19a" 
+#                size: s-1vcpu-1gb
+        - test_droplets_info:
+             droplets:
+                - name: app2
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: "testHWApp"
+                  vpc_uuid: "52c0bc9a-b941-494a-935b-6e54f88216c6" 
+                - name: web2
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: "testHWApp"
+                  vpc_uuid: "52c0bc9a-b941-494a-935b-6e54f88216c6" 
+                - name: db2
+                  size: s-1vcpu-512mb-10gb
+                  region: sgp1
+                  image: ubuntu-20-04-x64
+                  state: "{{ global_state }}"
+                  project_name: "testHWApp"
+                  vpc_uuid: "52c0bc9a-b941-494a-935b-6e54f88216c6" 
+#                 size: s-1vcpu-1gb
         - debug: debug
 
     tasks:
@@ -33,11 +64,32 @@
             name: "snagurumKey"
             ssh_pub_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMtZq0cJY6ZtUvo0xfFmyrykDjrs28EDLk1cS9aa0ge4"
             state: present
-         register: result
+         register: sshKey_result
 
        - name: Print key creation result
          ansible.builtin.debug:
-            msg: "keyCreationResult = {{ result }}"
+            msg: "keyCreationResult = {{ sshKey_result }}"
+         when: debug
+
+       - name: create for test VPC
+         community.digitalocean.digital_ocean_vpc:
+            state: present
+            name: testHWAppVPC
+            region:  sgp1
+         register: testHWAppVPC
+
+       - name: Print vpc results
+         ansible.builtin.debug:
+            msg: "vpcResult  = {{ testHWAppVPC }}"
+         when: debug
+
+       - name: Fetch all VPCs
+         community.digitalocean.digital_ocean_vpc_info:
+         register: allVPVCs
+
+       - name: Print all vpc info
+         ansible.builtin.debug:
+            msg: "vpcs info  = {{ allVPVCs }}"
          when: debug
 
        - name: Create Droplets
@@ -47,17 +99,18 @@
             size:         "{{ item.size   }}"
             region:       "{{ item.region }}"
             image:        "{{ item.image  }}"
-            ssh_keys:     [ "{{ssh_key_id}}" ]
-            project_name: "{{ project_name }}"
+            ssh_keys:     [ "{{ sshKey_result.data.ssh_key.id }}" ]
+            project_name: "{{ item.project_name }}"
             oauth_token:  "{{ DO_API_TOKEN }}"
+            vpc_uuid:     "{{ item.vpc_uuid }}"
             wait_timeout: 500
             unique_name:  true
-         register: tempVar_droplets
-         loop: "{{ droplets_info }}"
+         register: droplets_status
+         loop: "{{ dev_droplets_info.droplets + test_droplets_info.droplets }}"
 
        - name: droplet deletion result
          ansible.builtin.debug:
-            msg: "droplet deletion result = {{ tempVar_droplets }} "
+            msg: "droplet deletion result = {{ droplets_status }} "
          when: global_state == "absent"
 
        - name: droplet creation result
@@ -70,10 +123,15 @@
                - "      {{item.data.droplet.networks.v4[1].type}} = {{item.data.droplet.networks.v4[1].ip_address}}"
                - "   )"
                - "}"
-         loop: "{{tempVar_droplets.results}}"
+         loop: "{{ droplets_status.results }}"
          loop_control:
             label: " *droplet* "
          when: global_state ==  "present"
+
+       - name: droplet full result
+         ansible.builtin.debug:
+            msg: "droplet result = {{ droplets_status }} "
+         when: debug
 
 
 #       - name: Gather information about all images
